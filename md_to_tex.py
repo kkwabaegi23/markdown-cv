@@ -1,5 +1,20 @@
 import os.path
 import sys
+import re
+
+def markdown_to_tex(markdown_content):
+    # Define a regular expression pattern to match markdown URLs
+    url_pattern = r'\[([^\]]+)\]\(([^)]+)\)'
+
+    # Define a function to replace markdown URLs with TeX format
+    def replace_url(match):
+        return '\\underline{\\href{' + match.group(2) + '}{' + match.group(1) + '}}'
+
+    # Use regular expression substitution to replace markdown URLs with TeX format
+    tex_content = re.sub(url_pattern, replace_url, markdown_content)
+
+    return tex_content
+
 
 def personal_info_from_md_line(txt):
     """Return personal info for lines with links
@@ -86,10 +101,10 @@ class CurriculumVitae():
                 i += 1
                 continue
             
-            if line.startswith("![]"):
-                self.photo = line.split("(")[1].split(")")[0]
-                i += 1
-                continue
+            #if line.startswith("![]"):
+            #    self.photo = line.split("(")[1].split(")")[0]
+            #    i += 1
+            #    continue
 
             if line.startswith("`email`"):
                 self.email = personal_info_from_md_line(line)
@@ -120,12 +135,15 @@ class CurriculumVitae():
                 i += 1
                 continue
             
+            if "(http" in line:
+                line = markdown_to_tex(line)
+
             if line.strip() != "":
                 side_text, title = split_cv_line(line)
                 self.content.append(CvItem(side_text, title))
                 i += 1
                 continue
-
+               
             i += 1
 
     def personal_data_to_tex(self):
@@ -133,16 +151,16 @@ class CurriculumVitae():
         tex_out.append("\\name {{{}}}{{{}}}".format(self.name[0], self.name[1]))
         if self.title is not None:
             tex_out.append("\\title{{{}}}".format(self.title))
-        if self.photo is not None:
-            tex_out.append("\\photo[80pt][0pt]{{{}}}".format(self.photo))
+        #if self.photo is not None:
+        #    tex_out.append("\\photo[80pt][0pt]{{{}}}".format(self.photo))
         if self.email is not None:
              tex_out.append("\\email{{{}}}".format(self.email))
         if self.homepage is not None:
              tex_out.append("\\homepage{{{}}}".format(self.homepage))
         if self.linkedin is not None:
              tex_out.append("\\social[linkedin]{{{}}}".format(self.linkedin))
-        if self.github is not None:
-             tex_out.append("\\social[github]{{{}}}".format(self.github))
+        #if self.github is not None:
+        #     tex_out.append("\\social[github]{{{}}}".format(self.github))
         
         tex_out = "\n".join(tex_out)
         return tex_out
@@ -167,4 +185,11 @@ if __name__ == "__main__":
         language = None
     cv = CurriculumVitae(language)
     cv.from_markdown(open(src_filename, "rt").read())
-    open(os.path.splitext(src_filename)[0] + ".tex", "wt").write(cv.to_tex())
+    #open(os.path.splitext(src_filename)[0] + ".tex", "wt").write(cv.to_tex())
+    
+    # Construct the output filename with the subfolder "output"
+    output_filename = os.path.join("output", os.path.splitext(src_filename)[0] + ".tex")
+
+    # Open the file in write text mode ("wt") and write the content to it
+    with open(output_filename, "wt") as f:
+        f.write(cv.to_tex())

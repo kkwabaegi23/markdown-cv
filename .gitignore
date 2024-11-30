@@ -1,5 +1,5 @@
 *.docx
-
+.vscode
 *.4tc
 *.aux
 *.bak
@@ -10,5 +10,8 @@
 *.tex
 *.tmp
 *.xref
-
+*.md
 !cv_template.tex
+
+/output
+
